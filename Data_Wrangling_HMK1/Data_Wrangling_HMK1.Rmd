@@ -1,0 +1,155 @@
+---
+title: "Data_Wrangling_Hmk1"
+author: "Nicol Parker"
+date: "April 30, 2018"
+output: 
+  html_document:
+    toc: true # creates table of contents
+    toc_depth: 3 # determines depth to which headers are shown in the table of contents (here ##)
+    toc_float: true # creates floating table of contents
+    code_folding: hide #creates buttons to hide or show code
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+###Environment
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+library(tidyverse)
+library(kableExtra)
+
+setwd('H:/GitHub/Computing_Enviornmental_Science/Data_Wrangling_HMK1/')
+
+```
+
+###Import and Tidy
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+#Load Data
+gaz_raw <- as.tibble(read.table('CA_Features_20180401.txt', header=TRUE, sep = '|', fill = TRUE))
+
+#Fix column 1 name
+colnames(gaz_raw)[1] <- 'FEATURE_ID'
+
+#Create tibble with variables of interest
+gaz <- select(gaz_raw,'FEATURE_ID','FEATURE_NAME', 'FEATURE_CLASS', 'STATE_ALPHA', 'COUNTY_NAME', 'PRIM_LAT_DEC','PRIM_LONG_DEC','SOURCE_LAT_DEC', 'SOURCE_LONG_DEC', 'ELEV_IN_M', 'MAP_NAME', 'DATE_CREATED', 'DATE_EDITED')
+
+#transform data to appropriate type
+gaz[,1:7] <- lapply(gaz[,1:7], as.character)
+gaz[, 6:7]<- lapply(gaz[,6:7], as.numeric)
+gaz$ELEV_IN_M <- as.numeric(gaz$ELEV_IN_M)
+gaz$DATE_CREATED <- as.Date(gaz$DATE_CREATED, '%m/%d/%Y')
+gaz$DATE_EDITED<- as.Date(gaz$DATE_EDITED, '%m/%d/%Y')
+
+#Delete rows without coordinate info
+gaz <- filter(gaz, gaz$PRIM_LAT_DEC != 'NA' | gaz$PRIM_LONG_DEC != 'NA')
+
+#write delimited file
+write.csv(gaz, file='CA_gaz_tidy_data.csv', sep = '|')
+
+```
+```{r}
+#New gazette table, note only first thousand observations are displayed
+gaz[1:1000,] %>%
+kable('html') %>%
+kable_styling(bootstrap_options ='striped', full_width = T,position='left')%>%
+  scroll_box(width ='800px', height = '500px')
+
+```
+
+
+
+###Analyze
+
+####Problem 1
+```{r, results= 'show'}
+
+#count feature name occurences
+gaz_FN_freq <- gaz %>% 
+          count(FEATURE_NAME)
+
+#Max occurence of feature name
+filter(gaz_FN_freq, n==max(gaz_FN_freq$n))
+```
+
+####Problem 2
+```{r, results='show'}
+
+#count feature class occurrences
+gaz_FC_freq <- gaz %>% 
+          count(FEATURE_CLASS)
+
+#min occurrence of feature class
+filter(gaz_FC_freq, n==min(gaz_FC_freq$n))
+
+```
+
+
+####Problems 3
+```{r}
+#Calculate approximate center point of each county based on features in county
+
+gaz_avg_lat_county <- gaz %>% 
+                          group_by(COUNTY_NAME) %>% 
+                            summarise(PRIM_LAT_DEC=mean(PRIM_LAT_DEC))
+gaz_avg_long_county <- gaz %>% 
+                          group_by(COUNTY_NAME) %>% 
+                            summarise(PRIM_LONG_DEC=mean(PRIM_LONG_DEC))
+gaz_avg_coor_county <- cbind(gaz_avg_lat_county, gaz_avg_long_county$PRIM_LONG_DEC)
+
+colnames(gaz_avg_coor_county) <- c('County', 'Latitude', 'Longitude')
+     
+```
+
+```{r}
+gaz_avg_coor_county %>%
+kable('html') %>%
+kable_styling(bootstrap_options ='striped', full_width = T,position='left')%>%
+  scroll_box(width ='500px', height = '500px')
+
+```
+
+####Problem 4
+```{r, results='hide'}
+
+#Compute fractions of the total number of features in each county that are natural and manmade
+
+#Create tibble with unique features and blank column that will be used to lable natural or manmande
+uniq_features <- as.tibble(unique(gaz$FEATURE_CLASS))
+
+uniq_features$type<- NA
+
+
+#filter out natural features
+natural <- slice(uniq_features,c(3,8,9,10,11,12,13,15,17:21,23,27:32,34:37,39,40:41,46,48,49,52:55,61))
+
+#filter manmade features
+
+manmade <- anti_join(uniq_features, natural)
+
+#Create ID columns
+natural$type <- 'natural'
+manmade$type <- 'manmade'
+
+
+#combine natural and manmade features to single tibble
+FEATURE_TYPE <- rbind(natural, manmade)
+
+gaz$FEATURE_TYPE <- match(gaz$FEATURE_CLASS,natural$value, nomatch = 0)
+
+for(i in 1:nrow(gaz)){ 
+if(gaz$FEATURE_TYPE[i]==0){gaz$FEATURE_TYPE[i]='manmade'}
+  else{
+    gaz$FEATURE_TYPE[i]='natural'}}
+```
+
+```{r}
+
+#New gazette table, note only first 1000 observations are displayed
+gaz[1:1000,] %>%
+kable('html') %>%
+kable_styling(bootstrap_options ='striped', full_width = T,position='left')%>%
+  scroll_box(width ='800px', height = '500px')
+
+```
+
