@@ -1,0 +1,13 @@
+Package: fish.summary
+Type: Package
+Title: Summarizes fish catch, prices, species, and revenue for wild caught fish in Lake Michigan and Lake Superior and estimates cod growth at variable temperature ranges based on the Bjoornsson et al., 2007 study [doi:10.1016/j.aquaculture.2007.06.026] 
+Version: 0.1.0
+Author: Nicol Parker
+Maintainer: Nicol Parker <nicolannparker@gmail.com>
+Description: Completes Computing in Environmetnal Science HMK3
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+Imports: tidyverse
+RoxygenNote: 6.0.1
+Suggests: testthat

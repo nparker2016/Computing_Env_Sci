@@ -1,0 +1,60 @@
+---
+title: "Great Lakes Fisheries"
+author: "Nicol Parker"
+date: "June 5, 2018"
+output: 
+  html_document:
+    toc: true # creates table of contents
+    toc_depth: 3 # determines depth to which headers are shown in the table of contents (here ##)
+    toc_float: true # creates floating table of contents
+    code_folding: hide #creates buttons to hide or show code
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+devtools::load_all('./fish.summary')
+```
+
+###fish_catch
+```{r, warning=FALSE}
+#Example data for the fish_catch function
+
+#obtain data for species and price
+species <- c('bluegill', 'bass', 'perch', 'trout', 'sturgeon')
+price <- c( 3, 5, 3, 7, 10 )
+
+
+#Create price table with species as the first column, ensure price data is numeric
+P <- as_tibble(cbind(species, price))
+P$price <- as.numeric(P$price)
+
+#Obtain catch data by  location 
+catch_Michigan<- c(500, 100, 400, 50, 10)
+catch_Superior <- c(300, 50, 400, 40, 1)
+
+#Create table of catch with species as the first column, catch in Lake Michigan as the second column, and catch in Superior as the third, ensure catch data is numeric
+C <- as_tibble(cbind(species, catch_Michigan, catch_Superior))
+C$catch_Michigan <- as.numeric(C$catch_Michigan)
+C$catch_Superior <- as.numeric(C$catch_Superior)
+
+#Use fish_catch function to evaluate by location the most frequently caught species, revenue, and the fisheries net revenue where P = price data, C=catch data, and if a graphic of revenue is desired, input the third parameter 'G'
+fish_catch(P,C,G)
+
+```
+
+###cod_growth
+```{r, results='show'}
+#Estimating cod growth using an equation derived from Bjoornsson et al., 2007 where a,b,c, and d are variables estimated from a third order polynomial of test data, here data from Experimetn A in the study was used:
+  a <- -0.497
+  b <- .1656
+  c <- .08588
+  d <- -0.004266
+  
+#Input polynomial variables
+G <- cod_growth(a,b,c,d)
+
+#Plot of estimated growth rates at temperatures from 1-20 degrees C
+ggplot(G) + geom_line(aes(x=Temp_C, y=Growth_Rate)) + ylab('Growth Rate (%/day)') + xlab('Temperature (C)')
+
+```
