@@ -28,22 +28,22 @@ fish_catch = function(P,C,G){
     colnames(MaxFreq) <- c('Max_Freq_Catch_Michigan','Max_Freq_Catch_Superior')
 
 
-    a <- as_tibble(full_join(P, C, by='species'))
-    Revenue_USD <- summarise(a, Revenue_Michigan_USD=sum(price*catch_Michigan), Revenue_Superior_USD=sum(price*catch_Superior))
+    a <- data.frame(dplyr::full_join(P, C, by='species'))
+    Revenue_USD <- dplyr::summarise(a, Revenue_Michigan_USD=sum(price*catch_Michigan), Revenue_Superior_USD=sum(price*catch_Superior))
 
 
 
-    Fisheries_Revenue_USD <- summarise(Revenue_USD, Fisheries_Revenue_USD=sum(Revenue_USD[,]))
+    Fisheries_Revenue_USD <- dplyr::summarise(Revenue_USD, Fisheries_Revenue_USD=sum(Revenue_USD[,]))
 
     output <- data.frame(MaxFreq, Revenue_USD, Fisheries_Revenue_USD, stringsAsFactors = FALSE)
 
   #optional output plot
-    w <- as_tibble(t(Revenue_USD))
+    w <- data.frame(t(Revenue_USD))
     w$location <- c('Michigan', 'Superior')
     colnames(w) <- c('revenue','location')
-    RevenueSummary <- ggplot(w) + geom_col(aes(x=location, y=revenue)) +
-      ggtitle('Wild Caught Fish Revenue Summary - Lake Michigan and Lake Superior') +
-      ylab('Revenue (USD)')  + xlab(' ')
+    RevenueSummary <- ggplot2::ggplot(w) + ggplot2::geom_col(ggplot2::aes(x=location, y=revenue)) +
+      ggplot2::ggtitle('Wild Caught Fish Revenue Summary - Lake Michigan and Lake Superior') +
+      ggplot2::ylab('Revenue (USD)')  + ggplot2::xlab(' ')
 
     if(missing(G)){return(output)
     }else{

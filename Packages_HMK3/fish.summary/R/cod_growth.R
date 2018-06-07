@@ -19,11 +19,10 @@
 cod_growth = function(a,b,c,d){
 
   T <- 1:20
-  G <- as_tibble(a+b*T+c*T^2+d*T^3)
+  G <- dplyr::as_tibble(a+b*T+c*T^2+d*T^3)
   G$Temp_C <- T
   colnames(G) <- c('Growth_Rate', 'Temp_C')
 
-  ggplot(G)+ geom_line(aes(x=Growth_Rate,y=Temp_C))
-G
+  return(G)
 }
 
